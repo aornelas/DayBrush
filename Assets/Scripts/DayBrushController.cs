@@ -6,6 +6,8 @@ public class DayBrushController : MonoBehaviour {
 	public GameObject pencil;
 	public GameObject paint;
 	public float strokeOffsetZ = -0.5f;
+	public AudioClip undoSFX;
+	public AudioClip redoSFX;
 
 	private Stack<GameObject> strokes;
 	private Stack<GameObject> undoneStrokes;
@@ -54,6 +56,7 @@ public class DayBrushController : MonoBehaviour {
 			GameObject stroke = strokes.Pop();
 			stroke.SetActive(false);
 			undoneStrokes.Push(stroke);
+			AudioSource.PlayClipAtPoint(undoSFX, stroke.transform.position);
 		}
 	}
 
@@ -63,6 +66,7 @@ public class DayBrushController : MonoBehaviour {
 			GameObject stroke = undoneStrokes.Pop();
 			stroke.SetActive(true);
 			strokes.Push(stroke);
+			AudioSource.PlayClipAtPoint(redoSFX, stroke.transform.position);
 		}
 	}
 }
