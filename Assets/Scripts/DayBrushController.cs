@@ -17,7 +17,6 @@ public class DayBrushController : MonoBehaviour {
 	void Awake ()
 	{
 		strokes = new Stack<GameObject>();
-		undoneStrokes = new Stack<GameObject>();
 	}
 	
 	void Update ()
@@ -33,6 +32,7 @@ public class DayBrushController : MonoBehaviour {
 		if (GvrController.ClickButtonUp) {
 			GameObject stroke = strokes.Peek();
 			stroke.transform.SetParent(this.transform);
+			undoneStrokes = new Stack<GameObject>();
 		}
 
 		if (GvrController.TouchDown) {
