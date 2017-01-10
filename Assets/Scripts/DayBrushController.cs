@@ -22,17 +22,11 @@ public class DayBrushController : MonoBehaviour {
 	void Update ()
 	{
 		if (GvrController.ClickButtonDown) {
-			GameObject stroke = GameObject.Instantiate<GameObject>(paint);
-			stroke.transform.SetParent(pencil.transform);
-			stroke.transform.localPosition = Vector3.zero + new Vector3(0, 0, strokeOffsetZ);
-			stroke.gameObject.GetComponent<TrailRenderer>().enabled = true;
-			strokes.Push(stroke);
+			StartStroke();
 		}
 
 		if (GvrController.ClickButtonUp) {
-			GameObject stroke = strokes.Peek();
-			stroke.transform.SetParent(this.transform);
-			undoneStrokes = new Stack<GameObject>();
+			EndStroke();
 		}
 
 		if (GvrController.TouchDown) {
@@ -40,17 +34,42 @@ public class DayBrushController : MonoBehaviour {
 		}
 
 		if (GvrController.TouchUp) {
-			Vector2 touchEndPos = GvrController.TouchPos;
-			if ((touchStartPos.x - touchEndPos.x) >= swipeThreshold ) {
+			if (SwipedLeft()) {
 				UndoStroke();
-			} else if ((touchEndPos.x - touchStartPos.x) >= swipeThreshold ) {
+			} else if (SwipedRight()) {
 				RedoStroke();
 			}
 		}
 
 	}
 
-	private void UndoStroke()
+	private void StartStroke ()
+	{
+		GameObject stroke = GameObject.Instantiate<GameObject>(paint);
+		stroke.transform.SetParent(pencil.transform);
+		stroke.transform.localPosition = new Vector3(0, 0, strokeOffsetZ);
+		stroke.gameObject.GetComponent<TrailRenderer>().enabled = true;
+		strokes.Push(stroke);
+	}
+
+	private void EndStroke ()
+	{
+		GameObject stroke = strokes.Peek();
+		stroke.transform.SetParent(this.transform);
+		undoneStrokes = new Stack<GameObject>();
+	}
+
+	private bool SwipedLeft ()
+	{
+		return (touchStartPos.x - GvrController.TouchPos.x) >= swipeThreshold;
+	}
+
+	private bool SwipedRight ()
+	{
+		return (GvrController.TouchPos.x - touchStartPos.x) >= swipeThreshold;
+	}
+
+	private void UndoStroke ()
 	{
 		if (strokes.Count > 0) {
 			GameObject stroke = strokes.Pop();
@@ -60,7 +79,7 @@ public class DayBrushController : MonoBehaviour {
 		}
 	}
 
-	private void RedoStroke()
+	private void RedoStroke ()
 	{
 		if (undoneStrokes.Count > 0) {
 			GameObject stroke = undoneStrokes.Pop();
