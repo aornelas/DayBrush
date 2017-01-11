@@ -12,11 +12,27 @@ public class DayBrushController : MonoBehaviour {
 	private Stack<GameObject> strokes;
 	private Stack<GameObject> undoneStrokes;
 	private Vector2 touchStartPos;
+	private Material paintMaterial;
 	private float swipeThreshold = 0.5f;
+	private int currentPaintIndex = -1;
+	private Color[] paintColors = {
+		Color.white,
+		Color.gray,
+		Color.black,
+		Color.red,
+		Color.green,
+		Color.blue,
+		Color.cyan,
+		Color.magenta,
+		Color.yellow
+	};
 
 	void Awake ()
 	{
 		strokes = new Stack<GameObject>();
+		undoneStrokes = new Stack<GameObject>();
+		paintMaterial = paint.gameObject.GetComponent<TrailRenderer>().material;
+		NextPaint();
 	}
 	
 	void Update ()
@@ -38,6 +54,10 @@ public class DayBrushController : MonoBehaviour {
 				UndoStroke();
 			} else if (SwipedRight()) {
 				RedoStroke();
+			} else if (SwipedDown()) {
+				PreviousPaint();
+			} else if (SwipedUp()) {
+				NextPaint();
 			}
 		}
 
@@ -59,14 +79,25 @@ public class DayBrushController : MonoBehaviour {
 		undoneStrokes = new Stack<GameObject>();
 	}
 
-	private bool SwipedLeft ()
+	private void NextPaint ()
 	{
-		return (touchStartPos.x - GvrController.TouchPos.x) >= swipeThreshold;
+		currentPaintIndex = (currentPaintIndex + 1) % paintColors.Length;
+		SetPaint();
 	}
 
-	private bool SwipedRight ()
+	private void PreviousPaint ()
 	{
-		return (GvrController.TouchPos.x - touchStartPos.x) >= swipeThreshold;
+		currentPaintIndex = (currentPaintIndex - 1 + paintColors.Length) % paintColors.Length;
+		SetPaint();
+	}
+
+	private void SetPaint()
+	{
+		Color newColor = paintColors[currentPaintIndex];
+		pencil.gameObject.GetComponent<MeshRenderer>().material.color = newColor;
+		Material newPaintMaterial = Material.Instantiate(paintMaterial);
+		newPaintMaterial.SetColor("_EmissionColor", newColor);
+		paint.gameObject.GetComponent<TrailRenderer>().material = newPaintMaterial;
 	}
 
 	private void UndoStroke ()
@@ -87,5 +118,25 @@ public class DayBrushController : MonoBehaviour {
 			strokes.Push(stroke);
 			AudioSource.PlayClipAtPoint(redoSFX, stroke.transform.position);
 		}
+	}
+
+	private bool SwipedLeft ()
+	{
+		return (touchStartPos.x - GvrController.TouchPos.x) >= swipeThreshold;
+	}
+
+	private bool SwipedRight ()
+	{
+		return (GvrController.TouchPos.x - touchStartPos.x) >= swipeThreshold;
+	}
+
+	private bool SwipedDown ()
+	{
+		return (touchStartPos.y - GvrController.TouchPos.y) >= swipeThreshold;
+	}
+
+	private bool SwipedUp ()
+	{
+		return (GvrController.TouchPos.y - touchStartPos.y) >= swipeThreshold;
 	}
 }
