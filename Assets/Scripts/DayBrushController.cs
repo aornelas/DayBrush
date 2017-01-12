@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Drives the functionality for DayBrush.
+/// </summary>
 public class DayBrushController : MonoBehaviour {
 
     public GameObject pencil;
@@ -13,18 +16,6 @@ public class DayBrushController : MonoBehaviour {
     private Stack<GameObject> undoneStrokes;
     private Vector2 touchStartPos;
     private Material paintMaterial;
-    private int currentPaintIndex = -1;
-    private Color[] paintColors = {
-        Color.white,
-        Color.gray,
-        Color.black,
-        Color.red,
-        Color.green,
-        Color.blue,
-        Color.cyan,
-        Color.magenta,
-        Color.yellow
-    };
 
     void Awake ()
     {
@@ -80,19 +71,16 @@ public class DayBrushController : MonoBehaviour {
 
     private void NextPaint ()
     {
-        currentPaintIndex = (currentPaintIndex + 1) % paintColors.Length;
-        SetPaint();
+        SetPaint(Paint.NextColor());
     }
 
     private void PreviousPaint ()
     {
-        currentPaintIndex = (currentPaintIndex - 1 + paintColors.Length) % paintColors.Length;
-        SetPaint();
+        SetPaint(Paint.PreviousColor());
     }
 
-    private void SetPaint ()
+    private void SetPaint (Color newColor)
     {
-        Color newColor = paintColors [currentPaintIndex];
         pencil.gameObject.GetComponent<MeshRenderer>().material.color = newColor;
         Material newPaintMaterial = Material.Instantiate(paintMaterial);
         newPaintMaterial.SetColor("_EmissionColor", newColor);
