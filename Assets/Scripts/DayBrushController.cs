@@ -45,12 +45,17 @@ public class DayBrushController : MonoBehaviour {
             } else if (MyGvrController.SwipingRightFrom(touchStartPos)) {
                 RedoStroke();
             } else if (MyGvrController.SwipingDownFrom(touchStartPos)) {
-                NextPaint();
+//                NextPaint();
+                SavePainting();
             } else if (MyGvrController.SwipingUpFrom(touchStartPos)) {
-                PreviousPaint();
+//                PreviousPaint();
+                LoadPainting();
             }
         }
 
+        if (GvrController.AppButtonDown) {
+            NextPaint();
+        }
     }
 
     private void StartStroke ()
@@ -104,6 +109,22 @@ public class DayBrushController : MonoBehaviour {
             stroke.SetActive(true);
             strokes.Push(stroke);
             AudioSource.PlayClipAtPoint(redoSFX, stroke.transform.position);
+        }
+    }
+
+    private void SavePainting ()
+    {
+        Painting p = new Painting();
+        p.name = "testPainting";
+        p.colorIndex = Paint.currentPaintIndex;
+        Storage.Save(p);
+    }
+
+    private void LoadPainting ()
+    {
+        Painting p = Storage.Load();
+        if (p != null) {
+            pencil.gameObject.GetComponent<MeshRenderer>().material.color = Paint.Colors[p.colorIndex];
         }
     }
 }
