@@ -13,7 +13,6 @@ public class DayBrushController : MonoBehaviour {
 	private Stack<GameObject> undoneStrokes;
 	private Vector2 touchStartPos;
 	private Material paintMaterial;
-	private float swipeThreshold = 0.5f;
 	private int currentPaintIndex = -1;
 	private Color[] paintColors = {
 		Color.white,
@@ -34,7 +33,7 @@ public class DayBrushController : MonoBehaviour {
 		paintMaterial = paint.gameObject.GetComponent<TrailRenderer>().material;
 		NextPaint();
 	}
-	
+
 	void Update ()
 	{
 		if (GvrController.ClickButtonDown) {
@@ -50,14 +49,14 @@ public class DayBrushController : MonoBehaviour {
 		}
 
 		if (GvrController.TouchUp) {
-			if (SwipedLeft()) {
+			if (MyGvrController.SwipingLeftFrom(touchStartPos)) {
 				UndoStroke();
-			} else if (SwipedRight()) {
+			} else if (MyGvrController.SwipingRightFrom(touchStartPos)) {
 				RedoStroke();
-			} else if (SwipedDown()) {
-				PreviousPaint();
-			} else if (SwipedUp()) {
+			} else if (MyGvrController.SwipingDownFrom(touchStartPos)) {
 				NextPaint();
+			} else if (MyGvrController.SwipingUpFrom(touchStartPos)) {
+				PreviousPaint();
 			}
 		}
 
@@ -91,7 +90,7 @@ public class DayBrushController : MonoBehaviour {
 		SetPaint();
 	}
 
-	private void SetPaint()
+	private void SetPaint ()
 	{
 		Color newColor = paintColors[currentPaintIndex];
 		pencil.gameObject.GetComponent<MeshRenderer>().material.color = newColor;
@@ -118,25 +117,5 @@ public class DayBrushController : MonoBehaviour {
 			strokes.Push(stroke);
 			AudioSource.PlayClipAtPoint(redoSFX, stroke.transform.position);
 		}
-	}
-
-	private bool SwipedLeft ()
-	{
-		return (touchStartPos.x - GvrController.TouchPos.x) >= swipeThreshold;
-	}
-
-	private bool SwipedRight ()
-	{
-		return (GvrController.TouchPos.x - touchStartPos.x) >= swipeThreshold;
-	}
-
-	private bool SwipedDown ()
-	{
-		return (touchStartPos.y - GvrController.TouchPos.y) >= swipeThreshold;
-	}
-
-	private bool SwipedUp ()
-	{
-		return (GvrController.TouchPos.y - touchStartPos.y) >= swipeThreshold;
 	}
 }
