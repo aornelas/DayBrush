@@ -9,7 +9,7 @@ public class MyGvrController : GvrController {
     private static float swipeHorizontalThreshold = 0.6f;
 
     /// The percentage of the touchpad that has to be covered during a down or up swipe
-    private static float swipeVerticalThreshold = 0.4f;
+    private static float swipeVerticalThreshold = 0.3f;
 
     /// <summary>
     /// Whether the user is swiping left (on the touchpad button) from touchOrigin. Only swipes
