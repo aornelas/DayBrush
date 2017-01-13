@@ -8,5 +8,5 @@ using System.Collections;
 public class Painting {
 
     public string name;
-    public int colorIndex;
+    public Color color;
 }
