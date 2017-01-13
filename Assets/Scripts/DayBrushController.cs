@@ -45,16 +45,18 @@ public class DayBrushController : MonoBehaviour {
             } else if (gesture.SwipedRight()) {
                 RedoStroke();
             } else if (gesture.SwipedDown()) {
-//                NextPaint();
-                SavePainting();
+                NextPaint();
             } else if (gesture.SwipedUp()) {
-//                PreviousPaint();
-                LoadPainting();
+                PreviousPaint();
             }
         }
 
         if (GvrController.AppButtonDown) {
-            NextPaint();
+            if (GvrController.IsTouching) {
+                LoadPainting();
+            } else {
+                SavePainting();
+            }
         }
     }
 
