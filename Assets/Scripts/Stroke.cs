@@ -3,14 +3,17 @@ using System.Collections;
 
 public class Stroke {
 
-    private static int maxPoints = 100;
+    private static int maxPoints = 100; // TODO: find good number for this
     private static float strokeOffsetZ = -0.5f;
+    private static float pointPrecision = 0.001f;
 
     private Transform canvas;
     private Transform pencil;
     private GameObject paint;
+    private GameObject loadingPaint;
     private Vector3[] points;
     private int nextPointIndex;
+    private int pointCount;
 
     public Stroke (Transform canvas, Transform pencil, GameObject paint)
     {
@@ -21,6 +24,7 @@ public class Stroke {
 
         points = new Vector3[maxPoints];
         nextPointIndex = 0;
+        pointCount = 0;
     }
 
     public void StartPainting ()
@@ -45,9 +49,52 @@ public class Stroke {
         paint.SetActive(true);
     }
 
-    public void AddPoint (Vector3 point)
+    public void RecordPoint ()
     {
-        points[nextPointIndex] = point;
-        nextPointIndex++;
+        if (nextPointIndex > maxPoints - 1) {
+            // TODO: stop recording and start new stroke
+            return;
+        }
+
+        Vector3 currentPoint = paint.transform.position;
+        if (nextPointIndex == 0 || AreDistinctEnough(currentPoint, points[nextPointIndex - 1])) {
+            points[nextPointIndex] = currentPoint;
+            Debug.Log("points[" + nextPointIndex + "] = " + points[nextPointIndex]);
+            nextPointIndex++;
+            pointCount++;
+        }
+    }
+
+    public void StartLoading (GameObject loadingPencil)
+    {
+        nextPointIndex = 0;
+        loadingPaint = GameObject.Instantiate<GameObject>(paint);
+        Vector3 startingPoint = NextPoint();
+        loadingPencil.gameObject.GetComponent<MeshRenderer>().enabled = false;
+        loadingPencil.transform.position = startingPoint;
+        loadingPaint.transform.position = startingPoint;
+        loadingPaint.transform.SetParent(loadingPencil.transform);
+        loadingPaint.gameObject.GetComponent<TrailRenderer>().enabled = true;
+        loadingPaint.SetActive(true);
+    }
+
+    public void FinishLoading ()
+    {
+        loadingPaint.SetActive(false);
+    }
+
+    public Vector3 NextPoint ()
+    {
+        return points[nextPointIndex++];
+    }
+
+    public bool HasMorePoints ()
+    {
+        return nextPointIndex < pointCount;
+    }
+
+    private bool AreDistinctEnough (Vector3 v1, Vector3 v2)
+    {
+        return (v1 - v2).sqrMagnitude > (v1 * pointPrecision).sqrMagnitude;
     }
 }

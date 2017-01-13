@@ -15,10 +15,14 @@ public class DayBrushController : MonoBehaviour {
     private Stack<Stroke> undoneStrokes;
     private GvrControllerGesture gesture;
     private Material paintMaterial;
+    private GameObject loadingPencil;
+    private Stroke loadingStroke;
 
     /// Status flags
     private bool _isPainting;
     private Color _currentColor;
+
+    private float loadingSpeed = 0.00001f;
 
     void Awake ()
     {
@@ -31,7 +35,19 @@ public class DayBrushController : MonoBehaviour {
     void Update ()
     {
         if (_isPainting) {
-            RecordStroke();
+            strokes.Peek().RecordPoint();
+        }
+
+        if (loadingStroke != null) {
+            if (loadingStroke.HasMorePoints()) {
+                Vector3 nextPoint = loadingStroke.NextPoint();
+                loadingPencil.transform.position = nextPoint +
+                    (Vector3.zero * loadingSpeed * Time.deltaTime);
+            } else {
+                loadingStroke.FinishLoading();
+                loadingStroke = null;
+                strokes.Peek().Show();
+            }
         }
 
         if (GvrController.ClickButtonDown) {
@@ -85,11 +101,6 @@ public class DayBrushController : MonoBehaviour {
         undoneStrokes = new Stack<Stroke>();
     }
 
-    private void RecordStroke ()
-    {
-        // TODO
-    }
-
     private void NextPaint ()
     {
         SetPaint(Paint.NextColor());
@@ -124,7 +135,11 @@ public class DayBrushController : MonoBehaviour {
     {
         if (undoneStrokes.Count > 0) {
             Stroke stroke = undoneStrokes.Pop();
-            stroke.Show();
+
+            loadingPencil = GameObject.Instantiate<GameObject>(pencil);
+            loadingStroke = stroke;
+            loadingStroke.StartLoading(loadingPencil);
+
             strokes.Push(stroke);
             AudioSource.PlayClipAtPoint(redoSFX, this.transform.position);
         }
