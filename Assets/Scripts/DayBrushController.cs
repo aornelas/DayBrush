@@ -116,7 +116,7 @@ public class DayBrushController : MonoBehaviour {
     {
         Painting p = new Painting();
         p.name = "testPainting";
-        p.colorIndex = Paint.currentPaintIndex;
+        p.color = strokes.Peek().GetComponent<TrailRenderer>().material.GetColor("_EmissionColor");
         Storage.Save(p);
     }
 
@@ -124,7 +124,7 @@ public class DayBrushController : MonoBehaviour {
     {
         Painting p = Storage.Load();
         if (p != null) {
-            pencil.gameObject.GetComponent<MeshRenderer>().material.color = Paint.Colors[p.colorIndex];
+            pencil.gameObject.GetComponent<MeshRenderer>().material.color = p.color;
         }
     }
 }

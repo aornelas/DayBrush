@@ -15,7 +15,7 @@ public static class Storage {
 
     public static void Save (Painting p)
     {
-        BinaryFormatter bf = new BinaryFormatter();
+        BinaryFormatter bf = CreatePaintingBinaryFormatter();
         FileStream file = File.Create (filePath);
         bf.Serialize(file, p);
         file.Close();
@@ -25,7 +25,7 @@ public static class Storage {
     public static Painting Load ()
     {
         if (File.Exists(filePath)) {
-            BinaryFormatter bf = new BinaryFormatter();
+            BinaryFormatter bf = CreatePaintingBinaryFormatter();
             FileStream file = File.Open(filePath, FileMode.Open);
             Painting p = (Painting) bf.Deserialize(file);
             file.Close();
@@ -35,5 +35,18 @@ public static class Storage {
             Debug.Log("File not found: " + filePath);
             return null;
         }
+    }
+
+    private static BinaryFormatter CreatePaintingBinaryFormatter ()
+    {
+        BinaryFormatter bf = new BinaryFormatter();
+        SurrogateSelector ss = new SurrogateSelector();
+        ColorSerializationSurrogate css = new ColorSerializationSurrogate();
+
+        // any non-serializable class needs to have a serialization surrogate
+        ss.AddSurrogate(typeof(Color), new StreamingContext(StreamingContextStates.All), css);
+
+        bf.SurrogateSelector = ss;
+        return bf;
     }
 }

@@ -5,8 +5,7 @@
 /// </summary>
 public static class Paint {
 
-    // TODO: make both these properties private after simple save/load testing
-    public static Color[] Colors = {
+    private static Color[] Colors = {
         Color.white,
         Color.gray,
         Color.black,
@@ -17,7 +16,7 @@ public static class Paint {
         Color.magenta,
         Color.yellow
     };
-    public static int currentPaintIndex = -1;
+    private static int currentPaintIndex = -1;
 
     public static Color NextColor ()
     {
