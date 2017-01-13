@@ -14,7 +14,7 @@ public class DayBrushController : MonoBehaviour {
 
     private Stack<GameObject> strokes;
     private Stack<GameObject> undoneStrokes;
-    private Vector2 touchStartPos;
+    private GvrControllerGesture gesture;
     private Material paintMaterial;
 
     void Awake ()
@@ -36,17 +36,17 @@ public class DayBrushController : MonoBehaviour {
         }
 
         if (GvrController.TouchDown) {
-            touchStartPos = GvrController.TouchPos;
+            gesture = new GvrControllerGesture();
         }
 
         if (GvrController.TouchUp) {
-            if (MyGvrController.SwipingLeftFrom(touchStartPos)) {
+            if (gesture.SwipedLeft()) {
                 UndoStroke();
-            } else if (MyGvrController.SwipingRightFrom(touchStartPos)) {
+            } else if (gesture.SwipedRight()) {
                 RedoStroke();
-            } else if (MyGvrController.SwipingDownFrom(touchStartPos)) {
+            } else if (gesture.SwipedDown()) {
                 NextPaint();
-            } else if (MyGvrController.SwipingUpFrom(touchStartPos)) {
+            } else if (gesture.SwipedUp()) {
                 PreviousPaint();
             }
         }
