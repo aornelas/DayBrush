@@ -8,25 +8,32 @@ public class DayBrushController : MonoBehaviour {
 
     public GameObject pencil;
     public GameObject paint;
-    public float strokeOffsetZ = -0.5f;
     public AudioClip undoSFX;
     public AudioClip redoSFX;
 
-    private Stack<GameObject> strokes;
-    private Stack<GameObject> undoneStrokes;
+    private Stack<Stroke> strokes;
+    private Stack<Stroke> undoneStrokes;
     private GvrControllerGesture gesture;
     private Material paintMaterial;
 
+    /// Status flags
+    private bool _isPainting;
+    private Color _currentColor;
+
     void Awake ()
     {
-        strokes = new Stack<GameObject>();
-        undoneStrokes = new Stack<GameObject>();
+        strokes = new Stack<Stroke>();
+        undoneStrokes = new Stack<Stroke>();
         paintMaterial = paint.gameObject.GetComponent<TrailRenderer>().material;
         NextPaint();
     }
 
     void Update ()
     {
+        if (_isPainting) {
+            RecordStroke();
+        }
+
         if (GvrController.ClickButtonDown) {
             StartStroke();
         }
@@ -62,18 +69,25 @@ public class DayBrushController : MonoBehaviour {
 
     private void StartStroke ()
     {
-        GameObject stroke = GameObject.Instantiate<GameObject>(paint);
-        stroke.transform.SetParent(pencil.transform);
-        stroke.transform.localPosition = new Vector3(0, 0, strokeOffsetZ);
-        stroke.gameObject.GetComponent<TrailRenderer>().enabled = true;
+        _isPainting = true;
+
+        Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
+        stroke.StartPainting();
         strokes.Push(stroke);
     }
 
     private void EndStroke ()
     {
-        GameObject stroke = strokes.Peek();
-        stroke.transform.SetParent(this.transform);
-        undoneStrokes = new Stack<GameObject>();
+        _isPainting = false;
+
+        Stroke stroke = strokes.Peek();
+        stroke.StopPainting();
+        undoneStrokes = new Stack<Stroke>();
+    }
+
+    private void RecordStroke ()
+    {
+        // TODO
     }
 
     private void NextPaint ()
@@ -88,6 +102,8 @@ public class DayBrushController : MonoBehaviour {
 
     private void SetPaint (Color newColor)
     {
+        _currentColor = newColor;
+
         pencil.gameObject.GetComponent<MeshRenderer>().material.color = newColor;
         Material newPaintMaterial = Material.Instantiate(paintMaterial);
         newPaintMaterial.SetColor("_EmissionColor", newColor);
@@ -97,20 +113,20 @@ public class DayBrushController : MonoBehaviour {
     private void UndoStroke ()
     {
         if (strokes.Count > 0) {
-            GameObject stroke = strokes.Pop();
-            stroke.SetActive(false);
+            Stroke stroke = strokes.Pop();
+            stroke.Hide();
             undoneStrokes.Push(stroke);
-            AudioSource.PlayClipAtPoint(undoSFX, stroke.transform.position);
+            AudioSource.PlayClipAtPoint(undoSFX, this.transform.position);
         }
     }
 
     private void RedoStroke ()
     {
         if (undoneStrokes.Count > 0) {
-            GameObject stroke = undoneStrokes.Pop();
-            stroke.SetActive(true);
+            Stroke stroke = undoneStrokes.Pop();
+            stroke.Show();
             strokes.Push(stroke);
-            AudioSource.PlayClipAtPoint(redoSFX, stroke.transform.position);
+            AudioSource.PlayClipAtPoint(redoSFX, this.transform.position);
         }
     }
 
@@ -118,7 +134,7 @@ public class DayBrushController : MonoBehaviour {
     {
         Painting p = new Painting();
         p.name = "testPainting";
-        p.color = strokes.Peek().GetComponent<TrailRenderer>().material.GetColor("_EmissionColor");
+        p.color = _currentColor;
         Storage.Save(p);
     }
 
