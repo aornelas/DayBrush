@@ -16,12 +16,12 @@ public class DayBrushController : MonoBehaviour {
     private GvrControllerGesture gesture;
     private Material paintMaterial;
     private GameObject loadingPencil;
-    // TODO: can we reuse the actual stroke to avoid all the null checks?
     private Stroke loadingStroke;
+    private Color currentColor;
 
     /// Status flags
     private bool _isPainting;
-    private Color _currentColor;
+    private bool _isLoading;
 
     void Awake ()
     {
@@ -37,11 +37,12 @@ public class DayBrushController : MonoBehaviour {
             strokes.Peek().RecordPoint();
         }
 
-        if (loadingStroke != null && loadingStroke.IsLoading()) {
+        if (_isLoading) {
             if (loadingStroke.HasMorePoints()) {
                 loadingPencil.transform.position = loadingStroke.NextPoint();
             } else {
                 loadingStroke.FinishLoading();
+                _isLoading = false;
             }
         }
 
@@ -108,8 +109,7 @@ public class DayBrushController : MonoBehaviour {
 
     private void SetPaint (Color newColor)
     {
-        _currentColor = newColor;
-
+        currentColor = newColor;
         pencil.gameObject.GetComponent<MeshRenderer>().material.color = newColor;
         Material newPaintMaterial = Material.Instantiate(paintMaterial);
         newPaintMaterial.SetColor("_EmissionColor", newColor);
@@ -119,10 +119,7 @@ public class DayBrushController : MonoBehaviour {
     private void UndoStroke ()
     {
         if (strokes.Count > 0) {
-            if (loadingStroke != null && loadingStroke.IsLoading()) {
-                loadingStroke.FinishLoading();
-            }
-
+            ExpediteStrokeLoading();
             Stroke stroke = strokes.Pop();
             stroke.Hide();
             undoneStrokes.Push(stroke);
@@ -132,20 +129,23 @@ public class DayBrushController : MonoBehaviour {
 
     private void RedoStroke ()
     {
-        if (loadingStroke != null && loadingStroke.IsLoading()) {
-            loadingStroke.FinishLoading();
-        }
-
+        ExpediteStrokeLoading();
         if (undoneStrokes.Count > 0) {
-
             Stroke stroke = undoneStrokes.Pop();
-
             loadingPencil = GameObject.Instantiate<GameObject>(pencil);
             loadingStroke = stroke;
             loadingStroke.StartLoading(loadingPencil);
-
+            _isLoading = true;
             strokes.Push(stroke);
             AudioSource.PlayClipAtPoint(redoSFX, this.transform.position);
+        }
+    }
+    
+    private void ExpediteStrokeLoading ()
+    {
+        if (_isLoading) {
+            loadingStroke.FinishLoading();
+            _isLoading = false;
         }
     }
 
@@ -153,7 +153,7 @@ public class DayBrushController : MonoBehaviour {
     {
         Painting p = new Painting();
         p.name = "testPainting";
-        p.color = _currentColor;
+        p.color = currentColor;
         Storage.Save(p);
     }
 

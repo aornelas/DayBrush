@@ -62,7 +62,7 @@ public class Stroke {
         Vector3 currentPoint = paint.transform.position;
         if (nextPointIndex == 0 || AreDistinctEnough(currentPoint, points[nextPointIndex - 1])) {
             points[nextPointIndex] = currentPoint;
-            Debug.Log("points[" + nextPointIndex + "] = " + points[nextPointIndex]);
+//            Debug.Log("points[" + nextPointIndex + "] = " + points[nextPointIndex]);
             nextPointIndex++;
             pointCount++;
         }
@@ -79,11 +79,6 @@ public class Stroke {
         loadingPaint.transform.SetParent(loadingPencil.transform);
         loadingPaint.gameObject.GetComponent<TrailRenderer>().enabled = true;
         loadingPaint.SetActive(true);
-    }
-
-    public bool IsLoading ()
-    {
-        return loadingPaint.activeSelf;
     }
 
     public void FinishLoading ()
