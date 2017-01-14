@@ -3,8 +3,10 @@ using System.Collections;
 
 public class Stroke {
 
-    private static int maxPoints = 100; // TODO: find good number for this
+    private static int maxPoints = 1000; // TODO: find good number for this
     private static float strokeOffsetZ = -0.5f;
+
+    /// Must match Trail Renderer Min Vertex Distance, which is not scriptable :(
     private static float pointPrecision = 0.001f;
 
     private Transform canvas;
@@ -21,6 +23,7 @@ public class Stroke {
         this.pencil = pencil;
 
         this.paint = GameObject.Instantiate<GameObject>(paint);
+//        pointPrecision = this.paint.GetComponent<TrailRenderer>().
 
         points = new Vector3[maxPoints];
         nextPointIndex = 0;
@@ -78,9 +81,15 @@ public class Stroke {
         loadingPaint.SetActive(true);
     }
 
+    public bool IsLoading ()
+    {
+        return loadingPaint.activeSelf;
+    }
+
     public void FinishLoading ()
     {
         loadingPaint.SetActive(false);
+        Show();
     }
 
     public Vector3 NextPoint ()

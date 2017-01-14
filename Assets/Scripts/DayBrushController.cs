@@ -16,13 +16,12 @@ public class DayBrushController : MonoBehaviour {
     private GvrControllerGesture gesture;
     private Material paintMaterial;
     private GameObject loadingPencil;
+    // TODO: can we reuse the actual stroke to avoid all the null checks?
     private Stroke loadingStroke;
 
     /// Status flags
     private bool _isPainting;
     private Color _currentColor;
-
-    private float loadingSpeed = 0.00001f;
 
     void Awake ()
     {
@@ -38,15 +37,11 @@ public class DayBrushController : MonoBehaviour {
             strokes.Peek().RecordPoint();
         }
 
-        if (loadingStroke != null) {
+        if (loadingStroke != null && loadingStroke.IsLoading()) {
             if (loadingStroke.HasMorePoints()) {
-                Vector3 nextPoint = loadingStroke.NextPoint();
-                loadingPencil.transform.position = nextPoint +
-                    (Vector3.zero * loadingSpeed * Time.deltaTime);
+                loadingPencil.transform.position = loadingStroke.NextPoint();
             } else {
                 loadingStroke.FinishLoading();
-                loadingStroke = null;
-                strokes.Peek().Show();
             }
         }
 
@@ -124,6 +119,10 @@ public class DayBrushController : MonoBehaviour {
     private void UndoStroke ()
     {
         if (strokes.Count > 0) {
+            if (loadingStroke != null && loadingStroke.IsLoading()) {
+                loadingStroke.FinishLoading();
+            }
+
             Stroke stroke = strokes.Pop();
             stroke.Hide();
             undoneStrokes.Push(stroke);
@@ -134,6 +133,10 @@ public class DayBrushController : MonoBehaviour {
     private void RedoStroke ()
     {
         if (undoneStrokes.Count > 0) {
+            if (loadingStroke != null && loadingStroke.IsLoading()) {
+                loadingStroke.FinishLoading();
+            }
+
             Stroke stroke = undoneStrokes.Pop();
 
             loadingPencil = GameObject.Instantiate<GameObject>(pencil);
