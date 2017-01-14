@@ -132,10 +132,11 @@ public class DayBrushController : MonoBehaviour {
 
     private void RedoStroke ()
     {
+        if (loadingStroke != null && loadingStroke.IsLoading()) {
+            loadingStroke.FinishLoading();
+        }
+
         if (undoneStrokes.Count > 0) {
-            if (loadingStroke != null && loadingStroke.IsLoading()) {
-                loadingStroke.FinishLoading();
-            }
 
             Stroke stroke = undoneStrokes.Pop();
 
