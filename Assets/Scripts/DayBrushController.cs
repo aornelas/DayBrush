@@ -29,6 +29,7 @@ public class DayBrushController : MonoBehaviour {
         undoneStrokes = new Stack<Stroke>();
         paintMaterial = paint.gameObject.GetComponent<TrailRenderer>().material;
         NextPaint();
+        LoadPainting();
     }
 
     void Update ()
@@ -153,15 +154,40 @@ public class DayBrushController : MonoBehaviour {
     {
         PaintingData p = new PaintingData();
         p.name = "testPainting";
-        p.color = currentColor;
+        List<StrokeData> paintingStrokeData = new List<StrokeData>();
+        foreach (Stroke s in this.strokes) {
+            paintingStrokeData.AddRange(s.GetStrokeData());
+        }
+        p.strokes = paintingStrokeData;
         Storage.Save(p);
+    }
+
+    private void ClearPainting () {
+        while (strokes.Count > 0) {
+            UndoStroke();
+        }
+        undoneStrokes = new Stack<Stroke>();
     }
 
     private void LoadPainting ()
     {
         PaintingData p = Storage.Load();
         if (p != null) {
-            pencil.gameObject.GetComponent<MeshRenderer>().material.color = p.color;
+            ClearPainting();
+
+            Queue<Stroke> paintingStrokes = new Queue<Stroke>();
+            foreach (StrokeData strokeData in p.strokes) {
+                SetPaint(strokeData.color);
+                Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
+                stroke.SetStrokeData(strokeData);
+                paintingStrokes.Enqueue(stroke);
+            }
+
+            while (paintingStrokes.Count > 0) {
+                undoneStrokes.Push(paintingStrokes.Dequeue());
+            }
+
+            // TODO: kick off automatic painting
         }
     }
 }

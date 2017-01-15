@@ -8,6 +8,7 @@ using System.Collections;
 public class StrokeData {
 
     public Vector3[] points;
+    public int pointCount;
     public Color color;
 
     public StrokeData (Color color, int maxPoints)

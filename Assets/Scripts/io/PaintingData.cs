@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
 /// Represents a painting to be saved and loaded.
@@ -8,6 +8,6 @@ using System.Collections;
 public class PaintingData {
 
     public string name;
-    public Color color;
+    public List<StrokeData> strokes;
 
 }

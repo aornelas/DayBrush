@@ -71,6 +71,7 @@ public class Stroke {
         if (nextPointIndex == 0 || AreDistinctEnough(currentPoint, currentStrokeData.points[nextPointIndex - 1])) {
             currentStrokeData.points[nextPointIndex] = currentPoint;
             nextPointIndex++;
+            currentStrokeData.pointCount = nextPointIndex;
             pointCount++;
         }
     }
@@ -91,6 +92,7 @@ public class Stroke {
 
     public void FinishLoading ()
     {
+        // TODO: handle loading from disk; there's NO paint there...
         loadingPaint.SetActive(false);
         Show();
     }
@@ -107,6 +109,21 @@ public class Stroke {
     public bool HasMorePoints ()
     {
         return currentStrokeDataIndex < strokeDataList.Count || nextPointIndex < pointCount % maxPoints;
+    }
+
+    public List<StrokeData> GetStrokeData ()
+    {
+        return strokeDataList;
+    }
+
+    public void SetStrokeData (StrokeData strokeData)
+    {
+        currentStrokeData = strokeData;
+        strokeDataList = new List<StrokeData>();
+        strokeDataList.Add(strokeData);
+        currentStrokeDataIndex = 0;
+        nextPointIndex = 0;
+        pointCount = strokeData.pointCount;
     }
 
     private bool AreDistinctEnough (Vector3 v1, Vector3 v2)

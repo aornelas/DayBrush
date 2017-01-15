@@ -41,10 +41,13 @@ public static class Storage {
     {
         BinaryFormatter bf = new BinaryFormatter();
         SurrogateSelector ss = new SurrogateSelector();
+        StreamingContext sc = new StreamingContext(StreamingContextStates.All);
         ColorSerializationSurrogate css = new ColorSerializationSurrogate();
+        Vector3SerializationSurrogate vss = new Vector3SerializationSurrogate();
 
         // any non-serializable class needs to have a serialization surrogate
-        ss.AddSurrogate(typeof(Color), new StreamingContext(StreamingContextStates.All), css);
+        ss.AddSurrogate(typeof(Color), sc, css);
+        ss.AddSurrogate(typeof(Vector3), sc, vss);
 
         bf.SurrogateSelector = ss;
         return bf;
