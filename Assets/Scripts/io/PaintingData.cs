@@ -5,8 +5,9 @@ using System.Collections;
 /// Represents a painting to be saved and loaded.
 /// </summary>
 [System.Serializable]
-public class Painting {
+public class PaintingData {
 
     public string name;
     public Color color;
+
 }

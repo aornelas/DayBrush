@@ -151,7 +151,7 @@ public class DayBrushController : MonoBehaviour {
 
     private void SavePainting ()
     {
-        Painting p = new Painting();
+        PaintingData p = new PaintingData();
         p.name = "testPainting";
         p.color = currentColor;
         Storage.Save(p);
@@ -159,7 +159,7 @@ public class DayBrushController : MonoBehaviour {
 
     private void LoadPainting ()
     {
-        Painting p = Storage.Load();
+        PaintingData p = Storage.Load();
         if (p != null) {
             pencil.gameObject.GetComponent<MeshRenderer>().material.color = p.color;
         }

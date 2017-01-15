@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class Stroke {
 
-    private static int maxPoints = 1000; // TODO: find good number for this
+    private static int maxPoints = 100; // TODO: find good number for this
     private static float strokeOffsetZ = -0.5f;
 
     /// Must match Trail Renderer Min Vertex Distance, which is not scriptable :(
@@ -13,7 +13,9 @@ public class Stroke {
     private Transform pencil;
     private GameObject paint;
     private GameObject loadingPaint;
-    private Vector3[] points;
+    private List<StrokeData> strokeDataList;
+    private StrokeData currentStrokeData;
+    private int currentStrokeDataIndex;
     private int nextPointIndex;
     private int pointCount;
 
@@ -23,9 +25,13 @@ public class Stroke {
         this.pencil = pencil;
 
         this.paint = GameObject.Instantiate<GameObject>(paint);
-//        pointPrecision = this.paint.GetComponent<TrailRenderer>().
 
-        points = new Vector3[maxPoints];
+        Color color = paint.gameObject.GetComponent<TrailRenderer>().material.GetColor("_EmissionColor");
+        strokeDataList = new List<StrokeData>();
+        currentStrokeData = new StrokeData(color, maxPoints);
+        strokeDataList.Add(currentStrokeData);
+
+        currentStrokeDataIndex = 0;
         nextPointIndex = 0;
         pointCount = 0;
     }
@@ -55,14 +61,15 @@ public class Stroke {
     public void RecordPoint ()
     {
         if (nextPointIndex > maxPoints - 1) {
-            // TODO: stop recording and start new stroke
-            return;
+            nextPointIndex = 0;
+            currentStrokeDataIndex++;
+            currentStrokeData = new StrokeData(currentStrokeData.color, maxPoints);
+            strokeDataList.Add(currentStrokeData);
         }
 
         Vector3 currentPoint = paint.transform.position;
-        if (nextPointIndex == 0 || AreDistinctEnough(currentPoint, points[nextPointIndex - 1])) {
-            points[nextPointIndex] = currentPoint;
-//            Debug.Log("points[" + nextPointIndex + "] = " + points[nextPointIndex]);
+        if (nextPointIndex == 0 || AreDistinctEnough(currentPoint, currentStrokeData.points[nextPointIndex - 1])) {
+            currentStrokeData.points[nextPointIndex] = currentPoint;
             nextPointIndex++;
             pointCount++;
         }
@@ -70,6 +77,7 @@ public class Stroke {
 
     public void StartLoading (GameObject loadingPencil)
     {
+        currentStrokeDataIndex = 0;
         nextPointIndex = 0;
         loadingPaint = GameObject.Instantiate<GameObject>(paint);
         Vector3 startingPoint = NextPoint();
@@ -89,12 +97,16 @@ public class Stroke {
 
     public Vector3 NextPoint ()
     {
-        return points[nextPointIndex++];
+        if (nextPointIndex == 0 || nextPointIndex > maxPoints - 1) {
+            nextPointIndex = 0;
+            currentStrokeData = strokeDataList[currentStrokeDataIndex++];
+        }
+        return currentStrokeData.points[nextPointIndex++];
     }
 
     public bool HasMorePoints ()
     {
-        return nextPointIndex < pointCount;
+        return currentStrokeDataIndex < strokeDataList.Count || nextPointIndex < pointCount % maxPoints;
     }
 
     private bool AreDistinctEnough (Vector3 v1, Vector3 v2)

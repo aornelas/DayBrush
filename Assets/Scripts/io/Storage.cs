@@ -13,7 +13,7 @@ public static class Storage {
 
     private static string filePath = Application.persistentDataPath + "/painting.txt";
 
-    public static void Save (Painting p)
+    public static void Save (PaintingData p)
     {
         BinaryFormatter bf = CreatePaintingBinaryFormatter();
         FileStream file = File.Create (filePath);
@@ -22,12 +22,12 @@ public static class Storage {
         Debug.Log("Saved Painting: " + p.name);
     }
 
-    public static Painting Load ()
+    public static PaintingData Load ()
     {
         if (File.Exists(filePath)) {
             BinaryFormatter bf = CreatePaintingBinaryFormatter();
             FileStream file = File.Open(filePath, FileMode.Open);
-            Painting p = (Painting) bf.Deserialize(file);
+            PaintingData p = (PaintingData) bf.Deserialize(file);
             file.Close();
             Debug.Log("Loaded Painting: " + p.name);
             return p;
