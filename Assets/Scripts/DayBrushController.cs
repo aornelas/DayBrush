@@ -21,7 +21,8 @@ public class DayBrushController : MonoBehaviour {
 
     /// Status flags
     private bool _isPainting;
-    private bool _isLoading;
+    private bool _isLoadingStroke;
+    private bool _isLoadingPainting;
 
     void Awake ()
     {
@@ -38,12 +39,15 @@ public class DayBrushController : MonoBehaviour {
             strokes.Peek().RecordPoint();
         }
 
-        if (_isLoading) {
+        if (_isLoadingStroke) {
             if (loadingStroke.HasMorePoints()) {
                 loadingPencil.transform.position = loadingStroke.NextPoint();
             } else {
                 loadingStroke.FinishLoading();
-                _isLoading = false;
+                _isLoadingStroke = false;
+                if (_isLoadingPainting && undoneStrokes.Count > 0) {
+                    RedoStroke();
+                }
             }
         }
 
@@ -136,7 +140,7 @@ public class DayBrushController : MonoBehaviour {
             loadingPencil = GameObject.Instantiate<GameObject>(pencil);
             loadingStroke = stroke;
             loadingStroke.StartLoading(loadingPencil);
-            _isLoading = true;
+            _isLoadingStroke = true;
             strokes.Push(stroke);
             AudioSource.PlayClipAtPoint(redoSFX, this.transform.position);
         }
@@ -144,9 +148,9 @@ public class DayBrushController : MonoBehaviour {
     
     private void ExpediteStrokeLoading ()
     {
-        if (_isLoading) {
+        if (_isLoadingStroke) {
             loadingStroke.FinishLoading();
-            _isLoading = false;
+            _isLoadingStroke = false;
         }
     }
 
@@ -187,7 +191,8 @@ public class DayBrushController : MonoBehaviour {
                 undoneStrokes.Push(paintingStrokes.Dequeue());
             }
 
-            // TODO: kick off automatic painting
+            RedoStroke();
+            _isLoadingPainting = true;
         }
     }
 }
