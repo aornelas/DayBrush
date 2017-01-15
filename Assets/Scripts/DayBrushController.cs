@@ -30,7 +30,6 @@ public class DayBrushController : MonoBehaviour {
         undoneStrokes = new Stack<Stroke>();
         paintMaterial = paint.gameObject.GetComponent<TrailRenderer>().material;
         NextPaint();
-        LoadPainting();
     }
 
     void Update ()
@@ -128,7 +127,9 @@ public class DayBrushController : MonoBehaviour {
             Stroke stroke = strokes.Pop();
             stroke.Hide();
             undoneStrokes.Push(stroke);
-            AudioSource.PlayClipAtPoint(undoSFX, this.transform.position);
+            if (!_isLoadingPainting) {
+                AudioSource.PlayClipAtPoint(undoSFX, this.transform.position);
+            }
         }
     }
 
@@ -142,7 +143,9 @@ public class DayBrushController : MonoBehaviour {
             loadingStroke.StartLoading(loadingPencil);
             _isLoadingStroke = true;
             strokes.Push(stroke);
-            AudioSource.PlayClipAtPoint(redoSFX, this.transform.position);
+            if (!_isLoadingPainting) {
+                AudioSource.PlayClipAtPoint(redoSFX, this.transform.position);
+            }
         }
     }
     
