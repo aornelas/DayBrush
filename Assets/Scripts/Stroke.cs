@@ -18,6 +18,7 @@ public class Stroke {
     private int currentStrokeDataIndex;
     private int nextPointIndex;
     private int pointCount;
+    private bool fromDisk;
 
     public Stroke (Transform canvas, Transform pencil, GameObject paint)
     {
@@ -50,12 +51,12 @@ public class Stroke {
 
     public void Hide ()
     {
-        paint.SetActive(false);
-    }
-
-    public void Show ()
-    {
-        paint.SetActive(true);
+        if (paint != null) {
+            paint.SetActive(false);
+        }
+        if (loadingPaint != null) {
+            loadingPaint.SetActive(false);
+        }
     }
 
     public void RecordPoint ()
@@ -92,9 +93,10 @@ public class Stroke {
 
     public void FinishLoading ()
     {
-        // TODO: handle loading from disk; there's NO paint there...
-        loadingPaint.SetActive(false);
-        Show();
+        if (!fromDisk) {
+            loadingPaint.SetActive(false);
+            paint.SetActive(true);
+        }
     }
 
     public Vector3 NextPoint ()
@@ -118,6 +120,7 @@ public class Stroke {
 
     public void SetStrokeData (StrokeData strokeData)
     {
+        fromDisk = true;
         currentStrokeData = strokeData;
         strokeDataList = new List<StrokeData>();
         strokeDataList.Add(strokeData);
