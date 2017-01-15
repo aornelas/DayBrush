@@ -44,8 +44,12 @@ public class DayBrushController : MonoBehaviour {
             } else {
                 loadingStroke.FinishLoading();
                 _isLoadingStroke = false;
-                if (_isLoadingPainting && undoneStrokes.Count > 0) {
-                    RedoStroke();
+                if (_isLoadingPainting) {
+                    if (undoneStrokes.Count > 0) {
+                        RedoStroke();
+                    } else {
+                        _isLoadingPainting = false;
+                    }
                 }
             }
         }
@@ -85,20 +89,24 @@ public class DayBrushController : MonoBehaviour {
 
     private void StartStroke ()
     {
-        _isPainting = true;
-
-        Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
-        stroke.StartPainting();
-        strokes.Push(stroke);
+        if (!_isLoadingStroke && !_isLoadingPainting) {
+            _isPainting = true;
+            
+            Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
+            stroke.StartPainting();
+            strokes.Push(stroke);
+        }
     }
 
     private void EndStroke ()
     {
-        _isPainting = false;
+        if (!_isLoadingStroke && !_isLoadingPainting) {
+            _isPainting = false;
 
-        Stroke stroke = strokes.Peek();
-        stroke.StopPainting();
-        undoneStrokes = new Stack<Stroke>();
+            Stroke stroke = strokes.Peek();
+            stroke.StopPainting();
+            undoneStrokes = new Stack<Stroke>();
+        }
     }
 
     private void NextPaint ()
