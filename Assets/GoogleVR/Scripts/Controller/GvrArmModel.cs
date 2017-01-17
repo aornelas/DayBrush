@@ -73,7 +73,7 @@ public class GvrArmModel : MonoBehaviour {
   private const float MAX_EXTENSION_ANGLE = 60.0f;
 
   /// Increases elbow bending as the controller moves up (unitless).
-  private const float EXTENSION_WEIGHT = 0.4f;
+  private const float EXTENSION_WEIGHT = -0.4f;
 
   /// Offset of the elbow due to the accelerometer
   private Vector3 elbowOffset;
