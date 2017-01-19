@@ -5,6 +5,7 @@ using System.Collections;
 /// Represents a stroke to be saved and loaded within PaintingData.
 /// </summary>
 [System.Serializable]
+// TODO: rename to StrokeSegment
 public class StrokeData {
 
     public Vector3[] points;

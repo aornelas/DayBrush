@@ -4,6 +4,8 @@ using System.Collections.Generic;
 /// <summary>
 /// Drives the functionality for DayBrush.
 /// </summary>
+// TODO: fix redo of large strokes, only first segment loads
+// TODO: fix painting loading stroke order, flips on every save 
 public class DayBrushController : MonoBehaviour {
 
     public GameObject pencil;
@@ -11,8 +13,8 @@ public class DayBrushController : MonoBehaviour {
     public AudioClip undoSFX;
     public AudioClip redoSFX;
 
-    private Stack<Stroke> strokes;
-    private Stack<Stroke> undoneStrokes;
+    private Stack<Stroke> strokesDone;
+    private Stack<Stroke> strokesUndone;
     private GvrControllerGesture gesture;
     private Material paintMaterial;
     private GameObject loadingPencil;
@@ -26,34 +28,14 @@ public class DayBrushController : MonoBehaviour {
 
     void Awake ()
     {
-        strokes = new Stack<Stroke>();
-        undoneStrokes = new Stack<Stroke>();
+        strokesDone = new Stack<Stroke>();
+        strokesUndone = new Stack<Stroke>();
         paintMaterial = paint.gameObject.GetComponent<TrailRenderer>().material;
         NextPaint();
     }
 
     void Update ()
     {
-        if (_isPainting) {
-            strokes.Peek().RecordPoint();
-        }
-
-        if (_isLoadingStroke) {
-            if (loadingStroke.HasMorePoints()) {
-                loadingPencil.transform.position = loadingStroke.NextPoint();
-            } else {
-                loadingStroke.FinishLoading();
-                _isLoadingStroke = false;
-                if (_isLoadingPainting) {
-                    if (undoneStrokes.Count > 0) {
-                        RedoStroke();
-                    } else {
-                        _isLoadingPainting = false;
-                    }
-                }
-            }
-        }
-
         if (GvrController.ClickButtonDown) {
             StartStroke();
         }
@@ -67,14 +49,16 @@ public class DayBrushController : MonoBehaviour {
         }
 
         if (GvrController.TouchUp) {
-            if (gesture.SwipedLeft()) {
-                UndoStroke();
-            } else if (gesture.SwipedRight()) {
-                RedoStroke();
-            } else if (gesture.SwipedDown()) {
-                NextPaint();
-            } else if (gesture.SwipedUp()) {
-                PreviousPaint();
+            if (gesture != null) {
+                if (gesture.SwipedLeft()) {
+                    UndoStroke();
+                } else if (gesture.SwipedRight()) {
+                    RedoStroke();
+                } else if (gesture.SwipedDown()) {
+                    NextPaint();
+                } else if (gesture.SwipedUp()) {
+                    PreviousPaint();
+                }
             }
         }
 
@@ -87,6 +71,32 @@ public class DayBrushController : MonoBehaviour {
         }
     }
 
+    void FixedUpdate ()
+    {
+        if (_isLoadingStroke || _isLoadingPainting) {
+            if (loadingStroke.HasMorePoints()) {
+                loadingPencil.transform.position = loadingStroke.NextPoint();
+            } else {
+                loadingStroke.FinishLoading();
+                _isLoadingStroke = false;
+                if (_isLoadingPainting) {
+                    if (strokesUndone.Count > 0) {
+                        RedoStroke();
+                    } else {
+                        _isLoadingPainting = false;
+                    }
+                }
+            }
+        }
+    }
+
+    void LateUpdate ()
+    {
+        if (_isPainting) {
+            strokesDone.Peek().RecordPoint();
+        }
+    }
+
     private void StartStroke ()
     {
         if (!_isLoadingStroke && !_isLoadingPainting) {
@@ -94,7 +104,7 @@ public class DayBrushController : MonoBehaviour {
             
             Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
             stroke.StartPainting();
-            strokes.Push(stroke);
+            strokesDone.Push(stroke);
         }
     }
 
@@ -103,9 +113,9 @@ public class DayBrushController : MonoBehaviour {
         if (!_isLoadingStroke && !_isLoadingPainting) {
             _isPainting = false;
 
-            Stroke stroke = strokes.Peek();
+            Stroke stroke = strokesDone.Peek();
             stroke.StopPainting();
-            undoneStrokes = new Stack<Stroke>();
+            strokesUndone = new Stack<Stroke>();
         }
     }
 
@@ -130,11 +140,11 @@ public class DayBrushController : MonoBehaviour {
 
     private void UndoStroke ()
     {
-        if (strokes.Count > 0) {
+        if (strokesDone.Count > 0) {
             ExpediteStrokeLoading();
-            Stroke stroke = strokes.Pop();
+            Stroke stroke = strokesDone.Pop();
             stroke.Hide();
-            undoneStrokes.Push(stroke);
+            strokesUndone.Push(stroke);
             if (!_isLoadingPainting) {
                 AudioSource.PlayClipAtPoint(undoSFX, this.transform.position);
             }
@@ -144,13 +154,13 @@ public class DayBrushController : MonoBehaviour {
     private void RedoStroke ()
     {
         ExpediteStrokeLoading();
-        if (undoneStrokes.Count > 0) {
-            Stroke stroke = undoneStrokes.Pop();
+        if (strokesUndone.Count > 0) {
+            _isLoadingStroke = true;
+            Stroke stroke = strokesUndone.Pop();
             loadingPencil = GameObject.Instantiate<GameObject>(pencil);
             loadingStroke = stroke;
             loadingStroke.StartLoading(loadingPencil);
-            _isLoadingStroke = true;
-            strokes.Push(stroke);
+            strokesDone.Push(stroke);
             if (!_isLoadingPainting) {
                 AudioSource.PlayClipAtPoint(redoSFX, this.transform.position);
             }
@@ -169,41 +179,41 @@ public class DayBrushController : MonoBehaviour {
     {
         PaintingData p = new PaintingData();
         p.name = "testPainting";
-        List<StrokeData> paintingStrokeData = new List<StrokeData>();
-        foreach (Stroke s in this.strokes) {
-            paintingStrokeData.AddRange(s.GetStrokeData());
+        List<List<StrokeData>> paintingStrokeData = new List<List<StrokeData>>();
+        foreach (Stroke s in strokesDone) {
+            paintingStrokeData.Add(s.GetStrokeData());
         }
         p.strokes = paintingStrokeData;
         Storage.Save(p);
     }
 
     private void ClearPainting () {
-        while (strokes.Count > 0) {
+        while (strokesDone.Count > 0) {
             UndoStroke();
         }
-        undoneStrokes = new Stack<Stroke>();
+        strokesUndone = new Stack<Stroke>();
     }
 
     private void LoadPainting ()
     {
+        _isLoadingPainting = true;
         PaintingData p = Storage.Load();
         if (p != null) {
             ClearPainting();
 
-            Queue<Stroke> paintingStrokes = new Queue<Stroke>();
-            foreach (StrokeData strokeData in p.strokes) {
-                SetPaint(strokeData.color);
+            Stack<Stroke> paintingStrokes = new Stack<Stroke>();
+            foreach (List<StrokeData> strokeDataList in p.strokes) {
+                SetPaint(strokeDataList[0].color);
                 Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
-                stroke.SetStrokeData(strokeData);
-                paintingStrokes.Enqueue(stroke);
+                stroke.SetStrokeData(strokeDataList);
+                paintingStrokes.Push(stroke);
             }
 
             while (paintingStrokes.Count > 0) {
-                undoneStrokes.Push(paintingStrokes.Dequeue());
+                strokesUndone.Push(paintingStrokes.Pop());
             }
 
             RedoStroke();
-            _isLoadingPainting = true;
         }
     }
 }

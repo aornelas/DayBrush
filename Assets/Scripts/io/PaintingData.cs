@@ -8,6 +8,6 @@ using System.Collections.Generic;
 public class PaintingData {
 
     public string name;
-    public List<StrokeData> strokes;
+    public List<List<StrokeData>> strokes;
 
 }

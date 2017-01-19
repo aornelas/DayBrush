@@ -12,6 +12,7 @@ public class Stroke {
     private Transform canvas;
     private Transform pencil;
     private GameObject paint;
+    private GameObject loadingPencil;
     private GameObject loadingPaint;
     private List<StrokeData> strokeDataList;
     private StrokeData currentStrokeData;
@@ -70,9 +71,9 @@ public class Stroke {
 
         Vector3 currentPoint = paint.transform.position;
         if (nextPointIndex == 0 || AreDistinctEnough(currentPoint, currentStrokeData.points[nextPointIndex - 1])) {
+            currentStrokeData.pointCount = nextPointIndex;
             currentStrokeData.points[nextPointIndex] = currentPoint;
             nextPointIndex++;
-            currentStrokeData.pointCount = nextPointIndex;
             pointCount++;
         }
     }
@@ -82,6 +83,7 @@ public class Stroke {
         currentStrokeDataIndex = 0;
         nextPointIndex = 0;
         loadingPaint = GameObject.Instantiate<GameObject>(paint);
+        this.loadingPencil = loadingPencil;
         Vector3 startingPoint = NextPoint();
         loadingPencil.gameObject.GetComponent<MeshRenderer>().enabled = false;
         loadingPencil.transform.position = startingPoint;
@@ -96,6 +98,11 @@ public class Stroke {
         if (!fromDisk) {
             loadingPaint.SetActive(false);
             paint.SetActive(true);
+        } else {
+            // TODO: properly expedite strokes from disk
+            while (HasMorePoints()) {
+                loadingPencil.transform.position = NextPoint();
+            }
         }
     }
 
@@ -110,7 +117,7 @@ public class Stroke {
 
     public bool HasMorePoints ()
     {
-        return currentStrokeDataIndex < strokeDataList.Count || nextPointIndex < pointCount % maxPoints;
+        return currentStrokeDataIndex < strokeDataList.Count - 1 || nextPointIndex < pointCount % maxPoints;
     }
 
     public List<StrokeData> GetStrokeData ()
@@ -118,15 +125,16 @@ public class Stroke {
         return strokeDataList;
     }
 
-    public void SetStrokeData (StrokeData strokeData)
+    public void SetStrokeData (List<StrokeData> strokeDataList)
     {
         fromDisk = true;
-        currentStrokeData = strokeData;
-        strokeDataList = new List<StrokeData>();
-        strokeDataList.Add(strokeData);
+        currentStrokeData = strokeDataList[0];
+        this.strokeDataList = strokeDataList;
         currentStrokeDataIndex = 0;
         nextPointIndex = 0;
-        pointCount = strokeData.pointCount;
+        foreach (StrokeData strokeData in strokeDataList) {
+            pointCount += strokeData.pointCount;
+        }
     }
 
     private bool AreDistinctEnough (Vector3 v1, Vector3 v2)
