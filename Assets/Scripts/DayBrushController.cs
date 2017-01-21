@@ -201,16 +201,16 @@ public class DayBrushController : MonoBehaviour {
         if (p != null) {
             ClearPainting();
 
-            Stack<Stroke> paintingStrokes = new Stack<Stroke>();
+            Queue<Stroke> paintingStrokes = new Queue<Stroke>();
             foreach (List<StrokeData> strokeDataList in p.strokes) {
                 SetPaint(strokeDataList[0].color);
                 Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
                 stroke.SetStrokeData(strokeDataList);
-                paintingStrokes.Push(stroke);
+                paintingStrokes.Enqueue(stroke);
             }
 
             while (paintingStrokes.Count > 0) {
-                strokesUndone.Push(paintingStrokes.Pop());
+                strokesUndone.Push(paintingStrokes.Dequeue());
             }
 
             RedoStroke();

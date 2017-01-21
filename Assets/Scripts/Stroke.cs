@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Stroke {
 
-    private static int maxPoints = 100; // TODO: find good number for this
+    private static int maxPoints = 1000; // TODO: find good number for this
     private static float strokeOffsetZ = -0.5f;
 
     /// Must match Trail Renderer Min Vertex Distance, which is not scriptable :(
