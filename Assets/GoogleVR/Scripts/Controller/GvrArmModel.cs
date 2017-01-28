@@ -44,7 +44,7 @@ public class GvrArmModel : MonoBehaviour {
 
   /// Rest position parameters for arm model (meters).
   private static readonly Vector3 ELBOW_POSITION = new Vector3(0.195f, -0.5f, -0.075f);
-  private static readonly Vector3 WRIST_POSITION = new Vector3(0.0f, 0.0f, 0.25f);
+  private static readonly Vector3 WRIST_POSITION = new Vector3(0.0f, 0.0f, 0.45f);
   private static readonly Vector3 ARM_EXTENSION_OFFSET = new Vector3(-0.13f, 0.14f, 0.08f);
 
   /// Strength of the acceleration filter (unitless).
@@ -73,7 +73,7 @@ public class GvrArmModel : MonoBehaviour {
   private const float MAX_EXTENSION_ANGLE = 60.0f;
 
   /// Increases elbow bending as the controller moves up (unitless).
-  private const float EXTENSION_WEIGHT = -0.4f;
+  private const float EXTENSION_WEIGHT = 0.0f;
 
   /// Offset of the elbow due to the accelerometer
   private Vector3 elbowOffset;
@@ -123,7 +123,7 @@ public class GvrArmModel : MonoBehaviour {
 
   /// Downward tilt of the laser pointer relative to the controller (degrees).
   [Range(0.0f, 30.0f)]
-  public float pointerTiltAngle = 15.0f;
+  public float pointerTiltAngle = 0.0f;
 
   /// Controller distance from the face after which the alpha value decreases (meters).
   [Range(0.0f, 0.4f)]
