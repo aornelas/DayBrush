@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Stroke {
 
-    private static int maxPoints = 1000; // TODO: find good number for this
+    private static int maxPoints = 100; // TODO: find good number for this
     private static float strokeOffsetZ = -0.5f;
 
     /// Must match Trail Renderer Min Vertex Distance, which is not scriptable :(
@@ -82,6 +82,8 @@ public class Stroke {
     {
         currentStrokeDataIndex = 0;
         nextPointIndex = 0;
+        currentStrokeData = strokeDataList[0];
+
         loadingPaint = GameObject.Instantiate<GameObject>(paint);
         this.loadingPencil = loadingPencil;
         Vector3 startingPoint = NextPoint();
@@ -108,9 +110,10 @@ public class Stroke {
 
     public Vector3 NextPoint ()
     {
-        if (nextPointIndex == 0 || nextPointIndex > maxPoints - 1) {
+        if (nextPointIndex > maxPoints - 1) {
             nextPointIndex = 0;
-            currentStrokeData = strokeDataList[currentStrokeDataIndex++];
+            currentStrokeDataIndex++;
+            currentStrokeData = strokeDataList[currentStrokeDataIndex];
         }
         return currentStrokeData.points[nextPointIndex++];
     }
@@ -132,9 +135,7 @@ public class Stroke {
         this.strokeDataList = strokeDataList;
         currentStrokeDataIndex = 0;
         nextPointIndex = 0;
-        foreach (StrokeData strokeData in strokeDataList) {
-            pointCount += strokeData.pointCount;
-        }
+        pointCount = ((strokeDataList.Count - 1) * maxPoints) + strokeDataList[strokeDataList.Count - 1].pointCount;
     }
 
     private bool AreDistinctEnough (Vector3 v1, Vector3 v2)
