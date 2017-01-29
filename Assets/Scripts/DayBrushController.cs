@@ -4,23 +4,32 @@ using System.Collections.Generic;
 /// <summary>
 /// Drives the functionality for DayBrush.
 /// </summary>
+// TODO: fix redo of large strokes, only first segment loads
+// TODO: fix painting loading stroke order, flips on every save 
 public class DayBrushController : MonoBehaviour {
 
     public GameObject pencil;
     public GameObject paint;
-    public float strokeOffsetZ = -0.5f;
     public AudioClip undoSFX;
     public AudioClip redoSFX;
 
-    private Stack<GameObject> strokes;
-    private Stack<GameObject> undoneStrokes;
+    private Stack<Stroke> strokesDone;
+    private Stack<Stroke> strokesUndone;
     private GvrControllerGesture gesture;
     private Material paintMaterial;
+    private GameObject loadingPencil;
+    private Stroke loadingStroke;
+    private Color currentColor;
+
+    /// Status flags
+    private bool _isPainting;
+    private bool _isLoadingStroke;
+    private bool _isLoadingPainting;
 
     void Awake ()
     {
-        strokes = new Stack<GameObject>();
-        undoneStrokes = new Stack<GameObject>();
+        strokesDone = new Stack<Stroke>();
+        strokesUndone = new Stack<Stroke>();
         paintMaterial = paint.gameObject.GetComponent<TrailRenderer>().material;
         NextPaint();
     }
@@ -40,33 +49,74 @@ public class DayBrushController : MonoBehaviour {
         }
 
         if (GvrController.TouchUp) {
-            if (gesture.SwipedLeft()) {
-                UndoStroke();
-            } else if (gesture.SwipedRight()) {
-                RedoStroke();
-            } else if (gesture.SwipedDown()) {
-                NextPaint();
-            } else if (gesture.SwipedUp()) {
-                PreviousPaint();
+            if (gesture != null) {
+                if (gesture.SwipedLeft()) {
+                    UndoStroke();
+                } else if (gesture.SwipedRight()) {
+                    RedoStroke();
+                } else if (gesture.SwipedDown()) {
+                    NextPaint();
+                } else if (gesture.SwipedUp()) {
+                    PreviousPaint();
+                }
             }
         }
 
+        if (GvrController.AppButtonDown) {
+            if (GvrController.IsTouching) {
+                LoadPainting();
+            } else {
+                SavePainting();
+            }
+        }
+    }
+
+    void FixedUpdate ()
+    {
+        if (_isLoadingStroke || _isLoadingPainting) {
+            if (loadingStroke.HasMorePoints()) {
+                loadingPencil.transform.position = loadingStroke.NextPoint();
+            } else {
+                loadingStroke.FinishLoading();
+                _isLoadingStroke = false;
+                if (_isLoadingPainting) {
+                    if (strokesUndone.Count > 0) {
+                        RedoStroke();
+                    } else {
+                        _isLoadingPainting = false;
+                    }
+                }
+            }
+        }
+    }
+
+    void LateUpdate ()
+    {
+        if (_isPainting) {
+            strokesDone.Peek().RecordPoint();
+        }
     }
 
     private void StartStroke ()
     {
-        GameObject stroke = GameObject.Instantiate<GameObject>(paint);
-        stroke.transform.SetParent(pencil.transform);
-        stroke.transform.localPosition = new Vector3(0, 0, strokeOffsetZ);
-        stroke.gameObject.GetComponent<TrailRenderer>().enabled = true;
-        strokes.Push(stroke);
+        if (!_isLoadingStroke && !_isLoadingPainting) {
+            _isPainting = true;
+            
+            Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
+            stroke.StartPainting();
+            strokesDone.Push(stroke);
+        }
     }
 
     private void EndStroke ()
     {
-        GameObject stroke = strokes.Peek();
-        stroke.transform.SetParent(this.transform);
-        undoneStrokes = new Stack<GameObject>();
+        if (!_isLoadingStroke && !_isLoadingPainting) {
+            _isPainting = false;
+
+            Stroke stroke = strokesDone.Peek();
+            stroke.StopPainting();
+            strokesUndone = new Stack<Stroke>();
+        }
     }
 
     private void NextPaint ()
@@ -81,6 +131,7 @@ public class DayBrushController : MonoBehaviour {
 
     private void SetPaint (Color newColor)
     {
+        currentColor = newColor;
         pencil.gameObject.GetComponent<MeshRenderer>().material.color = newColor;
         Material newPaintMaterial = Material.Instantiate(paintMaterial);
         newPaintMaterial.SetColor("_EmissionColor", newColor);
@@ -89,21 +140,80 @@ public class DayBrushController : MonoBehaviour {
 
     private void UndoStroke ()
     {
-        if (strokes.Count > 0) {
-            GameObject stroke = strokes.Pop();
-            stroke.SetActive(false);
-            undoneStrokes.Push(stroke);
-            AudioSource.PlayClipAtPoint(undoSFX, stroke.transform.position);
+        if (strokesDone.Count > 0) {
+            ExpediteStrokeLoading();
+            Stroke stroke = strokesDone.Pop();
+            stroke.Hide();
+            strokesUndone.Push(stroke);
+            if (!_isLoadingPainting) {
+                AudioSource.PlayClipAtPoint(undoSFX, this.transform.position);
+            }
         }
     }
 
     private void RedoStroke ()
     {
-        if (undoneStrokes.Count > 0) {
-            GameObject stroke = undoneStrokes.Pop();
-            stroke.SetActive(true);
-            strokes.Push(stroke);
-            AudioSource.PlayClipAtPoint(redoSFX, stroke.transform.position);
+        ExpediteStrokeLoading();
+        if (strokesUndone.Count > 0) {
+            _isLoadingStroke = true;
+            Stroke stroke = strokesUndone.Pop();
+            loadingPencil = GameObject.Instantiate<GameObject>(pencil);
+            loadingStroke = stroke;
+            loadingStroke.StartLoading(loadingPencil);
+            strokesDone.Push(stroke);
+            if (!_isLoadingPainting) {
+                AudioSource.PlayClipAtPoint(redoSFX, this.transform.position);
+            }
+        }
+    }
+    
+    private void ExpediteStrokeLoading ()
+    {
+        if (_isLoadingStroke) {
+            loadingStroke.FinishLoading();
+            _isLoadingStroke = false;
+        }
+    }
+
+    private void SavePainting ()
+    {
+        PaintingData p = new PaintingData();
+        p.name = "testPainting";
+        List<List<StrokeData>> paintingStrokeData = new List<List<StrokeData>>();
+        foreach (Stroke s in strokesDone) {
+            paintingStrokeData.Add(s.GetStrokeData());
+        }
+        p.strokes = paintingStrokeData;
+        Storage.Save(p);
+    }
+
+    private void ClearPainting () {
+        while (strokesDone.Count > 0) {
+            UndoStroke();
+        }
+        strokesUndone = new Stack<Stroke>();
+    }
+
+    private void LoadPainting ()
+    {
+        _isLoadingPainting = true;
+        PaintingData p = Storage.Load();
+        if (p != null) {
+            ClearPainting();
+
+            Queue<Stroke> paintingStrokes = new Queue<Stroke>();
+            foreach (List<StrokeData> strokeDataList in p.strokes) {
+                SetPaint(strokeDataList[0].color);
+                Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
+                stroke.SetStrokeData(strokeDataList);
+                paintingStrokes.Enqueue(stroke);
+            }
+
+            while (paintingStrokes.Count > 0) {
+                strokesUndone.Push(paintingStrokes.Dequeue());
+            }
+
+            RedoStroke();
         }
     }
 }
