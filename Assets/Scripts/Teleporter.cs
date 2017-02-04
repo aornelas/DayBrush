@@ -3,9 +3,14 @@ using System.Collections;
 
 public class Teleporter : MonoBehaviour {
 
+    public float targetFloatingAmplitude = 0.1f;
+    public float targetFloatingSpeed = 5.0f;
+
     public LineRenderer laser;
     public GameObject target;
     public GameObject player;
+
+    private float targetInitY;
 
     Vector3 currentTargetPos;
 
@@ -14,6 +19,8 @@ public class Teleporter : MonoBehaviour {
 	    Vector3[] initLaserPositions = new Vector3[2] { Vector3.zero, Vector3.zero };
         laser.SetPositions(initLaserPositions);
         laser.SetWidth(0.001f, 0.001f);
+
+        targetInitY = target.transform.position.y;
 	}
 
 	void Update ()
@@ -23,6 +30,7 @@ public class Teleporter : MonoBehaviour {
         if (GvrController.AppButton) {
             ShootLaserFromPointer(transform.position, v, 200f);
             OrientTargetToPlayer();
+            MakeTargetFloat();
             laser.enabled = true;
             target.SetActive(true);
         }
@@ -60,6 +68,13 @@ public class Teleporter : MonoBehaviour {
                 new Vector3(player.transform.position.x, target.transform.position.y, player.transform.position.z);
         target.transform.LookAt(playerPosition);
         target.transform.Rotate(new Vector3(180, 0));
+    }
+
+    private void MakeTargetFloat ()
+    {
+        float newTargetY = targetInitY + targetFloatingAmplitude * Mathf.Sin(targetFloatingSpeed * Time.time);
+        target.transform.position = new Vector3(target.transform.position.x, newTargetY, target.transform.position.z);
+        
     }
 
     private void TeleportToTarget ()
