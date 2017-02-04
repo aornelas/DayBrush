@@ -30,8 +30,8 @@ public class Teleporter : MonoBehaviour {
         if (GvrController.AppButton) {
             ShootLaserFromPointer(transform.position, v, 200f);
             OrientTargetToPlayer();
-            MakeTargetFloat();
-            laser.enabled = true;
+//            MakeTargetFloat();
+//            laser.enabled = true;
             target.SetActive(true);
         }
 
