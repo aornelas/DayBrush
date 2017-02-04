@@ -158,6 +158,7 @@ public class DayBrushController : MonoBehaviour {
             _isLoadingStroke = true;
             Stroke stroke = strokesUndone.Pop();
             loadingPencil = GameObject.Instantiate<GameObject>(pencil);
+            loadingPencil.GetComponent<Teleporter>().enabled = false;
             loadingStroke = stroke;
             loadingStroke.StartLoading(loadingPencil);
             strokesDone.Push(stroke);
