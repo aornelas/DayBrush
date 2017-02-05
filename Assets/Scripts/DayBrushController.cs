@@ -63,11 +63,11 @@ public class DayBrushController : MonoBehaviour {
         }
 
         if (GvrController.AppButtonDown) {
-            if (GvrController.IsTouching) {
-                LoadPainting();
-            } else {
-                SavePainting();
-            }
+//            if (GvrController.IsTouching) {
+//                LoadPainting();
+//            } else {
+//                SavePainting();
+//            }
         }
     }
 
@@ -102,7 +102,7 @@ public class DayBrushController : MonoBehaviour {
         if (!_isLoadingStroke && !_isLoadingPainting) {
             _isPainting = true;
             
-            Stroke stroke = new Stroke(this.transform, pencil.transform, paint);
+            Stroke stroke = new Stroke(this.transform.parent, pencil.transform, paint);
             stroke.StartPainting();
             strokesDone.Push(stroke);
         }
@@ -158,6 +158,7 @@ public class DayBrushController : MonoBehaviour {
             _isLoadingStroke = true;
             Stroke stroke = strokesUndone.Pop();
             loadingPencil = GameObject.Instantiate<GameObject>(pencil);
+            loadingPencil.GetComponent<Teleporter>().enabled = false;
             loadingStroke = stroke;
             loadingStroke.StartLoading(loadingPencil);
             strokesDone.Push(stroke);
