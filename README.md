@@ -1,7 +1,7 @@
 # DayBrush
 An experiment to see how close to Tilt Brush we can get on Daydream!
 
-![flower](https://raw.githubusercontent.com/aornelas/DayBrush/master/screenshots/flower.gif)
+![flower](https://raw.githubusercontent.com/aornelas/DayBrush/master/gifs/flower_tight.gif)
 
 # Controls
 * touch button click: paint
