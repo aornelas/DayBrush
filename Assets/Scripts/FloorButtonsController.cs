@@ -16,18 +16,19 @@ public class FloorButtonsController : MonoBehaviour {
     {
         Vector3 controllerDirection = GvrController.Orientation * Vector3.forward;
         bool controllerPointingDown = controllerDirection.y < minDownY;
-
-        if (controllerPointingDown) {
-            if (!_forceHidden) {
-                buttonPanel.SetActive(true);
-                controller.enabled = true;
-                laser.SetActive(true);
-                reticle.SetActive(true);
+        if (!GvrController.AppButton && !GvrController.ClickButton) {
+            if (controllerPointingDown) {
+                if (!_forceHidden) {
+                    buttonPanel.SetActive(true);
+                    controller.enabled = true;
+                    laser.SetActive(true);
+                    reticle.SetActive(true);
+                }
+            } else {
+                buttonPanel.SetActive(false);
+                reticle.SetActive(false);
+                _forceHidden = false;
             }
-        } else {
-            buttonPanel.SetActive(false);
-            reticle.SetActive(false);
-            _forceHidden = false;
         }
 	}
 

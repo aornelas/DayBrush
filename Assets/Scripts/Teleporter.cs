@@ -3,14 +3,18 @@ using System.Collections;
 
 public class Teleporter : MonoBehaviour {
 
-    public float targetFloatingAmplitude = 0.1f;
-    public float targetFloatingSpeed = 5.0f;
-
     public LineRenderer laser;
     public GameObject target;
     public GameObject player;
 
+    private float maxGroundY = 0.15f;
+    private float targetFloatingAmplitude = 0.1f;
+    private float targetFloatingSpeed = 5.0f;
+    private Color32 enabledTargetColor = new Color32(64, 128, 0, 255);
+    private Color32 disabledTargetColor = new Color32(128, 0, 0, 255);
+
     private float targetInitY;
+    private bool _aimingAtGround;
 
     Vector3 currentTargetPos;
 
@@ -30,13 +34,16 @@ public class Teleporter : MonoBehaviour {
         if (GvrController.AppButton) {
             ShootLaserFromPointer(transform.position, v, 200f);
             OrientTargetToPlayer();
+            UpdateTargetColor();
 //            MakeTargetFloat();
 //            laser.enabled = true;
             target.SetActive(true);
         }
 
         if (GvrController.AppButtonUp) {
-            TeleportToTarget();
+            if (_aimingAtGround) {
+                TeleportToTarget();
+            }
             laser.enabled = false;
             target.SetActive(false);
         }
@@ -68,6 +75,18 @@ public class Teleporter : MonoBehaviour {
                 new Vector3(player.transform.position.x, target.transform.position.y, player.transform.position.z);
         target.transform.LookAt(playerPosition);
         target.transform.Rotate(new Vector3(180, 0));
+    }
+
+    private void UpdateTargetColor ()
+    {
+        Vector3 controllerDirection = GvrController.Orientation * Vector3.forward;
+        _aimingAtGround = controllerDirection.y < maxGroundY;
+
+        Color targetColor = enabledTargetColor;
+        if (!_aimingAtGround) {
+            targetColor = disabledTargetColor;
+        }
+        target.gameObject.GetComponent<MeshRenderer>().material.color = targetColor;
     }
 
     private void MakeTargetFloat ()
