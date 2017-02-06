@@ -56,8 +56,8 @@ public class GvrControllerVisual : MonoBehaviour {
   void Update() {
     // Choose the appropriate material to render based on button states.
     if (GvrController.ClickButton) {
-      controllerRenderer.material = material_touchpad;
-      touchPoint.SetActive(false);
+//      controllerRenderer.material = material_touchpad;
+//      touchPoint.SetActive(false);
     } else {
       // Change material to reflect button presses.
       if (GvrController.AppButton) {
@@ -69,7 +69,7 @@ public class GvrControllerVisual : MonoBehaviour {
       }
 
       // Draw the touch point and animate the scale change.
-      touchPoint.SetActive(true);
+//      touchPoint.SetActive(true);
       if (GvrController.IsTouching) {
         // Reset the elapsedScaleTime when we start touching.
         // This flag is necessary because

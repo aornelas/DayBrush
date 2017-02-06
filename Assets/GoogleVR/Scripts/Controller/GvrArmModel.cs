@@ -126,7 +126,7 @@ public class GvrArmModel : MonoBehaviour {
   public float pointerTiltAngle = 0.0f;
 
   /// Controller distance from the face after which the alpha value decreases (meters).
-  [Range(0.0f, 0.4f)]
+  [Range(0.0f, 1.0f)]
   public float fadeDistanceFromFace = 0.32f;
 
   /// Determines if the shoulder should follow the gaze
