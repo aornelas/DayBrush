@@ -6,6 +6,7 @@ public class Teleporter : MonoBehaviour {
     public LineRenderer laser;
     public GameObject target;
     public GameObject player;
+    public GameObject floorButtons;
 
     private float maxGroundY = 0.15f;
     private float targetFloatingAmplitude = 0.1f;
@@ -29,6 +30,10 @@ public class Teleporter : MonoBehaviour {
 
 	void Update ()
     {
+        if (floorButtons.activeSelf) {
+            return;
+        }
+
         Vector3 v = GvrController.Orientation * Vector3.forward;
 
         if (GvrController.AppButton) {

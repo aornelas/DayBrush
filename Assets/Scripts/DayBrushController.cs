@@ -10,6 +10,7 @@ public class DayBrushController : MonoBehaviour {
 
     public GameObject pencil;
     public GameObject paint;
+    public GameObject floorButtons;
     public AudioClip undoSFX;
     public AudioClip redoSFX;
 
@@ -36,6 +37,10 @@ public class DayBrushController : MonoBehaviour {
 
     void Update ()
     {
+        if (floorButtons.activeSelf) {
+            return;
+        }
+
         if (GvrController.ClickButtonDown) {
             StartStroke();
         }
