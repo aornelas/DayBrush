@@ -8,7 +8,7 @@ public class FloorButtonsController : MonoBehaviour {
     public GameObject laser;
     public GameObject reticle;
 
-    private float minDownY = -0.5f;
+    private float minDownY = -0.8f;
 
     private bool _forceHidden = false;
       
