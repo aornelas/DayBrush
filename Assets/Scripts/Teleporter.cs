@@ -13,9 +13,11 @@ public class Teleporter : MonoBehaviour {
     private float targetFloatingSpeed = 5.0f;
     private Color32 enabledTargetColor = new Color32(64, 128, 0, 255);
     private Color32 disabledTargetColor = new Color32(128, 0, 0, 255);
+    private Color32 pastTargetColor = Color.gray;
+    private Material pastTargetMaterial;
 
     private float targetInitY;
-    private HashSet<Vector2> playerPositions;
+    private HashSet<GameObject> pastTargets;
 
     /// Status flags
     private bool _aimingAtGround;
@@ -29,7 +31,9 @@ public class Teleporter : MonoBehaviour {
         laser.SetWidth(0.001f, 0.001f);
 
         targetInitY = target.transform.position.y;
-        playerPositions = new HashSet<Vector2>();
+        pastTargets = new HashSet<GameObject>();
+        pastTargetMaterial = GameObject.Instantiate<Material>(target.gameObject.GetComponent<MeshRenderer>().material);
+        pastTargetMaterial.color = pastTargetColor;
     }
 
     void Update ()
@@ -42,8 +46,9 @@ public class Teleporter : MonoBehaviour {
 
         if (GvrController.AppButton) {
             ShootLaserFromPointer(transform.position, v, 200f);
-            OrientTargetToPlayer();
+            OrientTargetsToPlayer();
             UpdateTargetColor();
+            ShowPastTargets();
 //            MakeTargetFloat();
 //            laser.enabled = true;
             target.SetActive(true);
@@ -55,6 +60,7 @@ public class Teleporter : MonoBehaviour {
             }
             laser.enabled = false;
             target.SetActive(false);
+            HidePastTargets();
         }
     }
 
@@ -63,8 +69,13 @@ public class Teleporter : MonoBehaviour {
     /// </summary>
     public void RecordPosition ()
     {
-        playerPositions.Add(player.transform.position);
-        Debug.Log(playerPositions.Count);
+        Vector2 position = new Vector2(player.transform.position.x, player.transform.position.z);
+        GameObject pastTarget = GameObject.Instantiate<GameObject>(target);
+
+        pastTarget.gameObject.GetComponent<MeshRenderer>().material = pastTargetMaterial;
+        pastTarget.transform.position = new Vector3(position.x, pastTarget.transform.position.y, position.y);
+        pastTarget.SetActive(false);
+        pastTargets.Add(pastTarget);
     }
 
     private void ShootLaserFromPointer (Vector3 pointerPosition, Vector3 direction, float length)
@@ -87,12 +98,19 @@ public class Teleporter : MonoBehaviour {
         laser.SetPosition(1, targetPosition);
     }
 
-    private void OrientTargetToPlayer ()
+    private void OrientTargetsToPlayer ()
     {
         Vector3 playerPosition =
             new Vector3(player.transform.position.x, target.transform.position.y, player.transform.position.z);
+        Vector3 down = new Vector3(180, 0);
+
         target.transform.LookAt(playerPosition);
-        target.transform.Rotate(new Vector3(180, 0));
+        target.transform.Rotate(down);
+
+        foreach (GameObject pastTarget in pastTargets) {
+            pastTarget.transform.LookAt(playerPosition);
+            pastTarget.transform.Rotate(down);
+        }
     }
 
     private void UpdateTargetColor ()
@@ -105,6 +123,24 @@ public class Teleporter : MonoBehaviour {
             targetColor = disabledTargetColor;
         }
         target.gameObject.GetComponent<MeshRenderer>().material.color = targetColor;
+    }
+
+    private void ShowPastTargets ()
+    {
+        Vector3 playerPosition = player.transform.position;
+        foreach (GameObject pastTarget in pastTargets) {
+            Vector3 pastTargetPosition = pastTarget.transform.position;
+            if (pastTargetPosition.x != playerPosition.x || pastTargetPosition.z != playerPosition.z) {
+                pastTarget.SetActive(true);
+            }
+        }
+    }
+
+    private void HidePastTargets ()
+    {
+        foreach (GameObject pastTarget in pastTargets) {
+            pastTarget.SetActive(false);
+        }
     }
 
     private void MakeTargetFloat ()
