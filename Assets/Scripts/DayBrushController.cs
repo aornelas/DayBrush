@@ -21,6 +21,7 @@ public class DayBrushController : MonoBehaviour {
     private GameObject loadingPencil;
     private Stroke loadingStroke;
     private Color currentColor;
+    private Teleporter teleporter;
 
     /// Status flags
     private bool _isPainting;
@@ -33,6 +34,8 @@ public class DayBrushController : MonoBehaviour {
         strokesUndone = new Stack<Stroke>();
         paintMaterial = paint.gameObject.GetComponent<TrailRenderer>().material;
         NextPaint();
+
+        teleporter = pencil.gameObject.GetComponent<Teleporter>();
     }
 
     void Update ()
@@ -117,6 +120,8 @@ public class DayBrushController : MonoBehaviour {
             Stroke stroke = new Stroke(this.transform.parent, pencil.transform, paint);
             stroke.StartPainting();
             strokesDone.Push(stroke);
+
+            teleporter.RecordPosition();
         }
     }
 

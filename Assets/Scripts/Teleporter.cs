@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class Teleporter : MonoBehaviour {
 
@@ -15,20 +15,24 @@ public class Teleporter : MonoBehaviour {
     private Color32 disabledTargetColor = new Color32(128, 0, 0, 255);
 
     private float targetInitY;
+    private HashSet<Vector2> playerPositions;
+
+    /// Status flags
     private bool _aimingAtGround;
 
     Vector3 currentTargetPos;
 
-	void Start ()
+    void Start ()
     {
-	    Vector3[] initLaserPositions = new Vector3[2] { Vector3.zero, Vector3.zero };
+        Vector3[] initLaserPositions = new Vector3[2] { Vector3.zero, Vector3.zero };
         laser.SetPositions(initLaserPositions);
         laser.SetWidth(0.001f, 0.001f);
 
         targetInitY = target.transform.position.y;
-	}
+        playerPositions = new HashSet<Vector2>();
+    }
 
-	void Update ()
+    void Update ()
     {
         if (floorButtons.activeSelf) {
             return;
@@ -52,7 +56,16 @@ public class Teleporter : MonoBehaviour {
             laser.enabled = false;
             target.SetActive(false);
         }
-	}
+    }
+
+    /// <summary>
+    /// Records the current position of the player to later be able to return to.
+    /// </summary>
+    public void RecordPosition ()
+    {
+        playerPositions.Add(player.transform.position);
+        Debug.Log(playerPositions.Count);
+    }
 
     private void ShootLaserFromPointer (Vector3 pointerPosition, Vector3 direction, float length)
     {
@@ -77,7 +90,7 @@ public class Teleporter : MonoBehaviour {
     private void OrientTargetToPlayer ()
     {
         Vector3 playerPosition =
-                new Vector3(player.transform.position.x, target.transform.position.y, player.transform.position.z);
+            new Vector3(player.transform.position.x, target.transform.position.y, player.transform.position.z);
         target.transform.LookAt(playerPosition);
         target.transform.Rotate(new Vector3(180, 0));
     }
@@ -103,6 +116,6 @@ public class Teleporter : MonoBehaviour {
 
     private void TeleportToTarget ()
     {
-        player.transform.position = new Vector3 (currentTargetPos.x, player.transform.position.y, currentTargetPos.z);
+        player.transform.position = new Vector3(currentTargetPos.x, player.transform.position.y, currentTargetPos.z);
     }
 }
