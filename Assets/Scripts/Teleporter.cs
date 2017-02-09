@@ -11,6 +11,7 @@ public class Teleporter : MonoBehaviour {
     private float maxGroundY = 0.15f;
     private float targetFloatingAmplitude = 0.1f;
     private float targetFloatingSpeed = 5.0f;
+    private float targetSnapMargin = 0.25f;
     private Color32 enabledTargetColor = new Color32(64, 128, 0, 255);
     private Color32 disabledTargetColor = new Color32(128, 0, 0, 255);
     private Color32 pastTargetColor = Color.gray;
@@ -21,8 +22,6 @@ public class Teleporter : MonoBehaviour {
 
     /// Status flags
     private bool _aimingAtGround;
-
-    Vector3 currentTargetPos;
 
     void Start ()
     {
@@ -49,6 +48,7 @@ public class Teleporter : MonoBehaviour {
             OrientTargetsToPlayer();
             UpdateTargetColor();
             ShowPastTargets();
+            SnapTargetToNearbyPastTargets();
 //            MakeTargetFloat();
 //            laser.enabled = true;
             target.SetActive(true);
@@ -87,15 +87,34 @@ public class Teleporter : MonoBehaviour {
             GameObject gameObj = raycastHit.transform.gameObject;
             if (true) {//gameObj.tag == "Ground") {
                 // Show the target and follow track to the pointer
-                currentTargetPos = new Vector3(raycastHit.point.x,
-                    target.transform.localPosition.y, raycastHit.point.z);
-                target.transform.position = currentTargetPos;
+                target.transform.position = new Vector3(raycastHit.point.x, target.transform.localPosition.y,
+                        raycastHit.point.z);
             }
         }
 
         Vector3 targetPosition = pointerPosition + (length * direction);
         laser.SetPosition(0, pointerPosition);
         laser.SetPosition(1, targetPosition);
+    }
+
+    private void SnapTargetToNearbyPastTargets ()
+    {
+        float targetX = target.transform.position.x;
+        float targetZ = target.transform.position.z;
+
+        foreach (GameObject pastTarget in pastTargets) {
+            if (pastTarget.activeSelf) {
+                float pastTargetX = pastTarget.transform.position.x;
+                float pastTargetZ = pastTarget.transform.position.z;
+                if (Mathf.Abs(targetX - pastTargetX) < targetSnapMargin &&
+                        Mathf.Abs(targetZ - pastTargetZ) < targetSnapMargin) {
+                    pastTarget.SetActive(false);
+                    target.transform.position = pastTarget.transform.position;
+                } else {
+                    pastTarget.SetActive(true);
+                }
+            }
+        }
     }
 
     private void OrientTargetsToPlayer ()
@@ -152,6 +171,7 @@ public class Teleporter : MonoBehaviour {
 
     private void TeleportToTarget ()
     {
-        player.transform.position = new Vector3(currentTargetPos.x, player.transform.position.y, currentTargetPos.z);
+        Vector3 targetPosition = target.transform.position;
+        player.transform.position = new Vector3(targetPosition.x, player.transform.position.y, targetPosition.z);
     }
 }
