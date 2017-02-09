@@ -78,6 +78,11 @@ public class Teleporter : MonoBehaviour {
         pastTargets.Add(pastTarget);
     }
 
+    public void ClearRecordedPositions ()
+    {
+        pastTargets.Clear();
+    }
+
     private void ShootLaserFromPointer (Vector3 pointerPosition, Vector3 direction, float length)
     {
         Ray ray = new Ray(pointerPosition, direction);

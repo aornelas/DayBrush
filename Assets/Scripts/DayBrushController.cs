@@ -109,7 +109,9 @@ public class DayBrushController : MonoBehaviour {
         while (strokesDone.Count > 0) {
             UndoStroke();
         }
-        strokesUndone = new Stack<Stroke>();
+
+        strokesUndone.Clear();
+        teleporter.ClearRecordedPositions();
     }
 
     private void StartStroke ()
