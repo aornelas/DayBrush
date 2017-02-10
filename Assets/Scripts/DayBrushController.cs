@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using System.Collections.Generic;
 
 /// <summary>
@@ -13,6 +14,7 @@ public class DayBrushController : MonoBehaviour {
     public GameObject floorButtons;
     public AudioClip undoSFX;
     public AudioClip redoSFX;
+    public NetworkManager networkManager;
 
     private Stack<Stroke> strokesDone;
     private Stack<Stroke> strokesUndone;
@@ -36,6 +38,9 @@ public class DayBrushController : MonoBehaviour {
         NextPaint();
 
         teleporter = pencil.gameObject.GetComponent<Teleporter>();
+
+//        networkManager.StartHost();
+//        networkManager.networkAddress = "192.168.0.103";
     }
 
     void Update ()
