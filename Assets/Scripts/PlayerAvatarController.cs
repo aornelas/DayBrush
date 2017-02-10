@@ -8,7 +8,9 @@ public class PlayerAvatarController : NetworkBehaviour {
 
     void Start ()
     {
-        transform.SetParent(GameObject.FindGameObjectWithTag("Player").transform);
+        if (isLocalPlayer) {
+            transform.SetParent(GameObject.FindGameObjectWithTag("Player").transform);
+        }
         head = transform.Find("head").gameObject;
     }
 

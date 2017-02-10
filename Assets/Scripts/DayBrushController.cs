@@ -41,6 +41,7 @@ public class DayBrushController : MonoBehaviour {
 
 //        networkManager.StartHost();
 //        networkManager.networkAddress = "192.168.0.103";
+//        networkManager.StartClient();
     }
 
     void Update ()
