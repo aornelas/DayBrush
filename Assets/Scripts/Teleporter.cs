@@ -43,7 +43,8 @@ public class Teleporter : MonoBehaviour {
 
         Vector3 v = GvrController.Orientation * Vector3.forward;
 
-        if (GvrController.AppButton) {
+//        if (GvrController.AppButton) {
+        if (GvrController.ClickButton) {
             ShootLaserFromPointer(transform.position, v, 200f);
             OrientTargetsToPlayer();
             UpdateTargetColor();
@@ -54,7 +55,8 @@ public class Teleporter : MonoBehaviour {
             target.SetActive(true);
         }
 
-        if (GvrController.AppButtonUp) {
+//        if (GvrController.AppButtonUp) {
+        if (GvrController.ClickButtonUp) {
             if (_aimingAtGround) {
                 TeleportToTarget();
             }

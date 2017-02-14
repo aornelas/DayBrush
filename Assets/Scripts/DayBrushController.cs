@@ -41,7 +41,8 @@ public class DayBrushController : MonoBehaviour {
         teleporter = pencil.gameObject.GetComponent<Teleporter>();
 
 //        networkManager.StartHost();
-        networkManager.networkAddress = "192.168.0.103";
+//        networkManager.networkAddress = "192.168.0.103";
+        networkManager.networkAddress = "192.168.1.38";
         networkManager.StartClient();
     }
 

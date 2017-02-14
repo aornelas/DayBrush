@@ -19,7 +19,7 @@ public class PlayerAvatarController : NetworkBehaviour {
 
         camera = GameObject.FindGameObjectWithTag("MainCamera");
         actualPencil = GameObject.FindGameObjectWithTag("Pencil");
-        pencil.GetComponent<MeshRenderer>().material = actualPencil.GetComponent<MeshRenderer>().material;
+//        pencil.GetComponent<MeshRenderer>().material = actualPencil.GetComponent<MeshRenderer>().material;
     }
 
     void Update ()
