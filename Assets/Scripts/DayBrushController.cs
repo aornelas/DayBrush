@@ -24,6 +24,7 @@ public class DayBrushController : MonoBehaviour {
     private Stroke loadingStroke;
     private Color currentColor;
     private Teleporter teleporter;
+    private PlayerAvatarController avatarController;
 
     /// Status flags
     private bool _isPainting;
@@ -40,8 +41,8 @@ public class DayBrushController : MonoBehaviour {
         teleporter = pencil.gameObject.GetComponent<Teleporter>();
 
 //        networkManager.StartHost();
-//        networkManager.networkAddress = "192.168.0.103";
-//        networkManager.StartClient();
+        networkManager.networkAddress = "192.168.0.103";
+        networkManager.StartClient();
     }
 
     void Update ()
@@ -120,6 +121,11 @@ public class DayBrushController : MonoBehaviour {
         teleporter.ClearRecordedPositions();
     }
 
+    public void SetPlayerAvatarController (PlayerAvatarController avatarController)
+    {
+        this.avatarController = avatarController;
+    }
+
     private void StartStroke ()
     {
         if (!_isLoadingStroke && !_isLoadingPainting) {
@@ -163,6 +169,10 @@ public class DayBrushController : MonoBehaviour {
         Material newPaintMaterial = Material.Instantiate(paintMaterial);
         newPaintMaterial.SetColor("_EmissionColor", newColor);
         paint.gameObject.GetComponent<TrailRenderer>().material = newPaintMaterial;
+
+        if (avatarController != null) {
+            avatarController.SetPencilColor(newColor);
+        }
     }
 
     private void UndoStroke ()

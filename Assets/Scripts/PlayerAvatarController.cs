@@ -12,7 +12,9 @@ public class PlayerAvatarController : NetworkBehaviour {
     void Start ()
     {
         if (isLocalPlayer) {
-            transform.SetParent(GameObject.FindGameObjectWithTag("Player").transform);
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            transform.SetParent(player.transform);
+            player.GetComponent<DayBrushController>().SetPlayerAvatarController(this);
         }
 
         camera = GameObject.FindGameObjectWithTag("MainCamera");
@@ -41,5 +43,18 @@ public class PlayerAvatarController : NetworkBehaviour {
         visor.GetComponent<MeshRenderer>().enabled = false;
         body.GetComponent<MeshRenderer>().enabled = false;
         pencil.GetComponent<MeshRenderer>().enabled = false;
+    }
+
+    public void SetPencilColor (Color newColor)
+    {
+        if (isLocalPlayer) {
+            CmdUpdatePencilColor(newColor);
+        }
+    }
+
+    [Command]
+    private void CmdUpdatePencilColor(Color newColor)
+    {
+        pencil.GetComponent<MeshRenderer>().material.SetColor("_EmissionColor", newColor);
     }
 }
